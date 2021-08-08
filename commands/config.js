@@ -25,7 +25,7 @@ module.exports = {
         if(!interaction.inGuild()){
             return interaction.reply(`You need to do this in a server, not a private message.`, {ephemeral: true});
         }
-        console.log(`Error: ` + db.getCategory(interaction.guildId))
+        console.log(db.getTime(interaction.guildId))
         if(interaction.options.data.length === 0){
             return interaction.reply(`Here are your current server settings:\nCategory: ${db.getCategory(interaction.guildId)}\nTime: ${db.getTime(interaction.guildId)}\nRole: ${db.getTime(interaction.guildId)}`, {ephemeral: true});
         }
