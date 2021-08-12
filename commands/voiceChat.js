@@ -1,5 +1,3 @@
-const Enmap = require(`enmap`);
-
 module.exports = {
     data: [{
         name: `voice-chat`,
@@ -20,24 +18,33 @@ module.exports = {
         ]
     }],
     async execute(interaction){
-        const db = await require(`../database.js`);
         if(!interaction.inGuild()){
-            return interaction.reply(`You need to do this in a server, not a private message.`, {ephemeral: true});
+            interaction.reply({ content: `You need to do this in a server, not a private message.`, ephemeral: true});
+            return;
         }
-        interaction.guild.channels.create(interaction.options.get(`name`).value, {userLimit: interaction.options.get(`number`)?.value || 0, type: `GUILD_VOICE`, parent: interaction.guild.channels.cache.get(db.getCategory(interaction.guildId))})
-            .then(chan => checkNumbers(chan))
+        if(!interaction.member.roles.cache.get(interaction.client.config.get(interaction.guildId).role)){
+            interaction.reply({ content: `You need the ${interaction.guild.roles.cache.get(interaction.client.config.get(interaction.guild.id.toString()).role)} role to use this command.`, ephemeral: true});
+            return;
+        }
+        if(interaction.options.get(`number`)?.value > 99 || interaction.options.get(`number`)?.value < 1){
+            interaction.reply({ content: `The number of people allowed in the voice channel must be between 1 and 99.`, ephemeral: true});
+            return;
+        }
+        interaction.guild.channels.create(interaction.options.get(`name`).value, {userLimit: interaction.options.get(`number`)?.value || 0, type: `GUILD_VOICE`, parent: interaction.client.config.get(interaction.guildId.toString())?.category})
+            .then(chan => checkNumbers(chan, interaction))
             .catch(error => console.log(`Error: ${error}`));
-        return interaction.reply({content: `Created a new voice channel called **${interaction.options.get(`name`).value}**.
+        interaction.reply({content: `Created a new voice channel called **${interaction.options.get(`name`).value}**.
 Please do not create more than 1 voice channel at a time.
-When everyone has left the VC, it will be deleted within **${db.getTime(interaction.guildId)} seconds**.`, ephemeral: true});
+When everyone has left the VC, it will be deleted within **${interaction.client.config.get(interaction.guild.id.toString()).time} seconds**.`, ephemeral: true});
+        return;
     },
 }
 
-function checkNumbers(channel){
-    deleteChan = setTimeout(deleteChannel, db.getTime(interaction.guildId)*1000, channel);
+function checkNumbers(channel, interaction){
+    deleteChan = setTimeout(deleteChannel, interaction.client.config.get(interaction.guildId).time*1000, channel, interaction);
 }
 
-function deleteChannel(channel){
+function deleteChannel(channel, interaction){
     if(channel.deleted){
         return;
     }
@@ -45,5 +52,5 @@ function deleteChannel(channel){
         channel.delete();
         return;
     }
-    checkNumbers(channel);
+    checkNumbers(channel, interaction);
 }
