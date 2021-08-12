@@ -21,17 +21,19 @@ module.exports = {
         ]
     }],
     async execute(interaction){
-        const db = await require(`../database.js`);
         if(!interaction.inGuild()){
-            return interaction.reply(`You need to do this in a server, not a private message.`, {ephemeral: true});
+            return interaction.reply({ content: `You need to do this in a server, not a private message.`, ephemeral: true});
         }
-        console.log(db.getTime(interaction.guildId))
+        if(!interaction.member.permissions.has(`MANAGE_GUILD`)){
+            interaction.reply({ content: `You need the Manage Guild permission to use this command.`, ephemeral: true});
+            return;
+        }
         if(interaction.options.data.length === 0){
-            return interaction.reply(`Here are your current server settings:\nCategory: ${db.getCategory(interaction.guildId)}\nTime: ${db.getTime(interaction.guildId)}\nRole: ${db.getTime(interaction.guildId)}`, {ephemeral: true});
+            return interaction.reply({content: `Here are your current server settings:\nCategory: ${interaction.guild.channels.cache.get(interaction.client.config.get(interaction.guild.id.toString()).category)}\nTime: ${interaction.client.config.get(interaction.guild.id.toString()).time}\nRole: ${interaction.guild.roles.cache.get(interaction.client.config.get(interaction.guild.id.toString()).role)}`, ephemeral: true});
         }
-        for(option in interaction.options.data){
-            db.config.set(interaction.guild.toString(), option.value, option.name);
+        for(option of interaction.options.data){
+            interaction.client.config.set(interaction.guildId.toString(), option.value.toString(), option.name);
         }
-        return interaction.reply(`Updated your current server settings:\nCategory: ${db.getCategory(interaction.guildId)}\nTime: ${db.getTime(interaction.guildId)}\nRole: ${db.getTime(interaction.guildId)}`, {ephemeral: true});
+        return interaction.reply({content: `Updated your current server settings:\nCategory: ${interaction.guild.channels.cache.get(interaction.client.config.get(interaction.guild.id.toString()).category)}\nTime: ${interaction.client.config.get(interaction.guild.id.toString()).time}\nRole: ${interaction.guild.roles.cache.get(interaction.client.config.get(interaction.guild.id.toString()).role)}`, ephemeral: true});
     },
 }
