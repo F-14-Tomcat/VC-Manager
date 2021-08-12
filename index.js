@@ -12,10 +12,30 @@ for(const file of commandFiles){
     client.commands.set(command.data[0].name, command);
 }
 
+const Enmap = require(`enmap`);
+
+const defaultConfig = {
+    category: "default",
+    time: "60",
+    role: "default",
+}
+
+client.config = new Enmap({
+    name: `config`,
+    fetchAll: true,
+    autoFetch: true,
+    cloneLevel: `deep`,
+    autoEnsure: {
+        category: undefined,
+        time: "60",
+        role: undefined,
+    }
+});
+
 client.once('ready', async () => {
     console.log('Ready!');
 
-    console.log(`\nDeleting global commands:`);
+    console.log(`\nDeleting old global commands:`);
     for(command of client.application?.commands.cache){
         if(!client.commands.has(command.name)){
             client.application?.commands.delete(command.id)
@@ -23,11 +43,8 @@ client.once('ready', async () => {
         }
     }
 
-    console.log(`\nLoading global commands:`);
+    console.log(`\nLoading new global commands:`);
     for(command of client.commands){
-        if(command[1].data[0].name.startsWith(`example`)){
-            continue;
-        }
         try{
             await client.application?.commands.create(command[1].data[0]);
             console.log(`\t${command[1].data[0].name}`)
